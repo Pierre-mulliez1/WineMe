@@ -10,7 +10,7 @@ ipython_config.py
 
 #remove note file 
 Repository.txt
-*/Repository.txt/*
+#*/Repository.txt/*
 
 
 #do not include pytest cache
