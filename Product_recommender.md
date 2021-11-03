@@ -70,6 +70,10 @@ print(corr_features)
 
 X = X.drop(labels=corr_features, axis = 1)
 
+
+```
+
+```python
 #train test
 X_train, X_test, y_train, y_test = train_test_split(
    X, y, test_size=0.20, random_state=42)
@@ -141,4 +145,22 @@ print()
   
 # using metrics module for accuracy calculation
 print("ACCURACY OF THE MODEL: ", metrics.accuracy_score(y_test, y_pred))
+```
+
+## Nearest neighbor
+
+```python
+from sklearn.neighbors import NearestCentroid
+neigh = NearestCentroid()
+neigh.fit(X_train, y_train)
+y_pred = neigh.predict(X_test)
+
+print()
+  
+# using metrics module for accuracy calculation
+print("ACCURACY OF THE MODEL: ", metrics.accuracy_score(y_test, y_pred))
+```
+
+```python
+
 ```
