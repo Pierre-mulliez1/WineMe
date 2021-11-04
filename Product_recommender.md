@@ -85,6 +85,10 @@ for col in df2.columns:
 ```
 
 ```python
+df2.reset_index(inplace = True)
+df_title = df2.loc[:,['index','title']]
+df2 = df2.drop('title', axis = 1)
+print(df_title.head(5))
 df2.head(5)
 ```
 
@@ -97,7 +101,7 @@ df2 = df2.dropna()
 ```python
 from sklearn.model_selection import train_test_split
 y = df2["points"]
-X = df2.loc[:,df2.columns != ["points",'title']]
+X = df2.loc[:,df2.columns != "points"]
 ```
 
 ```python
