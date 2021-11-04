@@ -140,12 +140,13 @@ average = sum(y_train) / len(y_train)
 ```
 
 ```python
-arr_avg
-for el in y_test
+arr_avg = []
+for el in y_test:
+    arr_avg.append(average)
 ```
 
 ```python
-print('Mean absolute error: {}'.format(mean_absolute_error(y_test,average)))
+print('Mean absolute error: {}'.format(mean_absolute_error(y_test,arr_avg)))
 ```
 
 ### Random forest regressor 
