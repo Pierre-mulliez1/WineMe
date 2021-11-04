@@ -27,20 +27,18 @@ import os
 
 ```python
 from sklearn.datasets import load_wine
-data = load_wine(as_frame = True)
-data
+data1 = load_wine(as_frame = True)
 ```
 
 ```python
 #Load dataset
-
 DIRECTORY_WHERE_THIS_FILE_IS = os.path.dirname(os.path.abspath("Product_recommender.md"))
 DATA_PATH = os.path.join(DIRECTORY_WHERE_THIS_FILE_IS, "data/kaggle_wine2.csv")
 df1 = pd.read_csv(DATA_PATH)
 ```
 
 ```python
-df1['description']
+df1['description'].head(2)
 ```
 
 ```python
@@ -60,6 +58,7 @@ for el in df1['title']:
 ```
 
 ```python
+#onehotencode the country qnd yeqr
 categorical_columns = ['country', 'variety']
 for column in categorical_columns:
     tempdf = pd.get_dummies(df1[column], prefix=column)
@@ -73,14 +72,16 @@ for column in categorical_columns:
 ```
 
 ```python
-df2 = df1.drop(['Unnamed: 0','designation','description','province','region_1','region_2','taster_name','taster_twitter_handle','title','winery'], axis = 1)
+#drop the other non numericql collumns
+df2 = df1.drop(['Unnamed: 0','designation','description','province','region_1','region_2','taster_name','taster_twitter_handle','winery'], axis = 1)
 ```
 
 ```python
 #Take the most represented collumns
 for col in df2.columns:
-    if sum(df2[col]) < 5000 and col not in ('points', 'price'):
-        df2 = df2.drop(columns= col)
+    if col not in ('points', 'price','title'):
+        if sum(df2[col]) < 5000 :
+            df2 = df2.drop(columns= col)
 ```
 
 ```python
@@ -91,13 +92,12 @@ df2.head(5)
 #null
 #drop for now
 df2 = df2.dropna()
-df2
 ```
 
 ```python
 from sklearn.model_selection import train_test_split
 y = df2["points"]
-X = df2.loc[:,df2.columns != "points"]
+X = df2.loc[:,df2.columns != ["points",'title']]
 ```
 
 ```python
