@@ -26,6 +26,12 @@ import os
 ## Get the data
 
 ```python
+from sklearn.datasets import load_wine
+data = load_wine(as_frame = True)
+data
+```
+
+```python
 #Load dataset
 
 DIRECTORY_WHERE_THIS_FILE_IS = os.path.dirname(os.path.abspath("Product_recommender.md"))
@@ -34,16 +40,64 @@ df1 = pd.read_csv(DATA_PATH)
 ```
 
 ```python
-from sklearn.model_selection import train_test_split
-y = df1["points"]
-X = df1.loc[:,df1.columns != "points"]
+df1['description']
 ```
 
 ```python
-print(X.head())
+#extract the wine year
+import re
+df1['year'] = 0
+count = 0
+for el in df1['title']: 
+    res = [int(i) for i in el.split() if i.isdigit()]
+    if len(res) == 1:
+        df1.loc[count,'year'] = res[0]
+    elif len(res) == 2 and res[0] > 1900:
+        df1.loc[count,'year'] = res[0]
+    elif len(res) == 2 and res[1] > 1900:
+         df1.loc[count,'year'] = res[1]
+    count += 1
+```
 
-#onhotencode the country
-#province ?
+```python
+categorical_columns = ['country', 'variety']
+for column in categorical_columns:
+    tempdf = pd.get_dummies(df1[column], prefix=column)
+    df1 = pd.merge(
+        left=df1,
+        right=tempdf,
+        left_index=True,
+        right_index=True,
+    )
+    df1 = df1.drop(columns=column)
+```
+
+```python
+df2 = df1.drop(['Unnamed: 0','designation','description','province','region_1','region_2','taster_name','taster_twitter_handle','title','winery'], axis = 1)
+```
+
+```python
+#Take the most represented collumns
+for col in df2.columns:
+    if sum(df2[col]) < 5000 and col not in ('points', 'price'):
+        df2 = df2.drop(columns= col)
+```
+
+```python
+df2.head(5)
+```
+
+```python
+#null
+#drop for now
+df2 = df2.dropna()
+df2
+```
+
+```python
+from sklearn.model_selection import train_test_split
+y = df2["points"]
+X = df2.loc[:,df2.columns != "points"]
 ```
 
 ```python
@@ -68,7 +122,7 @@ corr_features = get_correlation(X, 0.70)
 print('correlated features: ', len(set(corr_features)) )
 print(corr_features)
 
-X = X.drop(labels=corr_features, axis = 1)
+#X = X.drop(labels=corr_features, axis = 1)
 
 
 ```
@@ -76,89 +130,58 @@ X = X.drop(labels=corr_features, axis = 1)
 ```python
 #train test
 X_train, X_test, y_train, y_test = train_test_split(
-   X, y, test_size=0.20, random_state=42)
+   X, y, test_size=0.30, random_state=42)
 ```
 
-## Linear models
-
-
-### Ridge
+### Baseline
 
 ```python
-from sklearn.linear_model import LogisticRegression
+average = sum(y_train) / len(y_train)
 ```
 
 ```python
-clf = LogisticRegression(random_state=0).fit(X_train, y_train)
-y_pred = clf.predict(X_test)
-print()
-  
-# using metrics module for accuracy calculation
-print("ACCURACY OF THE MODEL: ", metrics.accuracy_score(y_test, y_pred))
+arr_avg
+for el in y_test
 ```
 
 ```python
-
+print('Mean absolute error: {}'.format(mean_absolute_error(y_test,average)))
 ```
 
-## Non linear model 
+### Random forest regressor 
 
 ```python
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
-from sklearn.model_selection import RandomizedSearchCV
-
-random_grid = {'n_estimators': [200,300,500,800,1300,1500],
-               'max_features': ['auto', 'sqrt'],
-               'max_depth': [10,30,50,80],
-               'min_samples_split': [2, 5, 10],
-               'min_samples_leaf': [1, 2, 4]}
-
-# Use the random grid to search for best hyperparameters
-# First create the base model to tune
-rf = RandomForestClassifier()
-# Random search of parameters, using 3 fold cross validation, 
-# search across 100 different combinations, and use all available cores
-rf_random = RandomizedSearchCV(estimator = rf, param_distributions = random_grid, n_iter = 5, cv = 2, verbose=2, random_state=42, n_jobs = -1)
-# Fit the random search model
-rf_random.fit(X, y)
-rf_random.best_params_
+from sklearn.ensemble import RandomForestRegressor 
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_absolute_error
 ```
 
 ```python
-# creating a RF classifier
-clf = RandomForestClassifier(n_estimators = 500,min_samples_split = 10,
- min_samples_leaf= 1,
- max_features = 'sqrt',
- max_depth = 80)  
-  
-# Training the model on the training dataset
-# fit function is used to train the model using the training sets as parameters
-clf.fit(X_train, y_train)
-  
-# performing predictions on the test dataset
-y_pred = clf.predict(X_test)
-  
-# metrics are used to find accuracy or error
-from sklearn import metrics  
-print()
-  
-# using metrics module for accuracy calculation
-print("ACCURACY OF THE MODEL: ", metrics.accuracy_score(y_test, y_pred))
+grid = {
+    "max_depth": [35,40], 
+    "min_samples_leaf": [2,3],
+    "min_samples_split": [4,5,8,10]
+}
+
+"Sklearn"
+"-----------------------"
+grid_search = GridSearchCV(RandomForestRegressor(), param_grid = grid)
+grid_search.fit(X_train, y_train)
+optimal_model = grid_search.best_estimator_
+"-----------------------"
+
+print("Fine Tuned Model: {0}".format(optimal_model))
 ```
 
-## Nearest neighbor
+```python
+model = RandomForestRegressor(max_depth = optimal_model.max_depth, min_samples_leaf = optimal_model.min_samples_leaf, min_samples_split = optimal_model.min_samples_split)
+model.fit(X_train,y_train)
+adjusted_pred = model.predict(X_test)
+```
 
 ```python
-from sklearn.neighbors import NearestCentroid
-neigh = NearestCentroid()
-neigh.fit(X_train, y_train)
-y_pred = neigh.predict(X_test)
-
-print()
-  
-# using metrics module for accuracy calculation
-print("ACCURACY OF THE MODEL: ", metrics.accuracy_score(y_test, y_pred))
+print('Mean absolute error: {}'.format(mean_absolute_error(y_test,adjusted_pred)))
 ```
 
 ```python
